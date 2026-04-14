@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>律师案件管理系统</title>
+    <style>
+        :root {
+            --primary: #165DFF;
+            --primary-light: #4080FF;
+            --primary-dark: #0E42D2;
+            --success: #00B42A;
+            --warning: #FF7D00;
+            --danger: #F53F3F;
+            --gray-50: #F7F8FA;
+            --gray-100: #E8EBF0;
+            --gray-200: #C9CDD4;
+            --gray-300: #86909C;
+            --gray-800: #303643;
+            --gray-900: #1D2129;
+            --shadow-sm: 0 2px 8px rgba(22, 93, 255, 0.08);
+            --shadow-md: 0 4px 16px rgba(22, 93, 255, 0.12);
+            --radius-lg: 12px;
+            --transition: all 0.3s ease;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif}
+        body{background:var(--gray-50);color:var(--gray-800);font-size:14px}
+        .header{background:linear-gradient(135deg,#165DFF,#0E42D2);color:#fff;padding:1.2rem 2.5rem;box-shadow:var(--shadow-md);position:sticky;top:0;z-index:100}
+        .header-container{max-width:1400px;margin:0 auto;display:flex;align-items:center}
+        .header-title{font-size:1.6rem;font-weight:600}
+        .container{max-width:1400px;margin:2rem auto;padding:0 1.5rem;display:grid;grid-template-columns:1fr 1.5fr;gap:1.5rem}
+        .card{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:1.5rem}
+        .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:0.8rem;border-bottom:1px solid var(--gray-100)}
+        .card-title{font-size:1.2rem;font-weight:600;color:var(--gray-900)}
+        .upload-box{border:2px dashed var(--gray-200);border-radius:8px;padding:2.5rem 1rem;text-align:center;margin-bottom:1rem}
+        .upload-box:hover{border-color:var(--primary)}
+        .btn{display:inline-flex;align-items:center;justify-content:center;padding:0.7rem 1.4rem;border-radius:6px;font-weight:500;border:none;cursor:pointer;transition:var(--transition)}
+        .btn-primary{background:var(--primary);color:#fff}
+        .btn-primary:hover{background:#0E42D2}
+        .btn-success{background:var(--success);color:#fff}
+        .btn-export{background:#fff;color:var(--primary);border:1px solid var(--primary)}
+        .btn-export:hover{background:var(--primary);color:#fff}
+        .btn-delete{background:rgba(245,63,63,0.1);color:var(--danger);border:none;padding:0.4rem 0.8rem;border-radius:4px;cursor:pointer}
+        .btn-delete:hover{background:var(--danger);color:#fff}
+        .form-group{margin-bottom:1rem}
+        .form-label{display:block;margin-bottom:0.4rem;font-weight:500}
+        .form-control{width:100%;padding:0.7rem;border:1px solid var(--gray-200);border-radius:6px}
+        .form-control:focus{border-color:var(--primary);outline:none}
+        .case-table{width:100%;border-collapse:collapse}
+        .case-table th{background:var(--gray-50);padding:1rem;text-align:left;font-weight:600;border-bottom:1px solid var(--gray-100)}
+        .case-table td{padding:1rem;border-bottom:1px solid var(--gray-100)}
+        .case-table tr:hover{background:rgba(22,93,255,0.03)}
+        .tag{display:inline-block;padding:0.2rem 0.6rem;border-radius:99px;font-size:12px}
+        .tag-danger{background:rgba(245,63,63,0.1);color:var(--danger)}
+        .tag-warning{background:rgba(255,125,0,0.1);color:var(--warning)}
+        .tag-success{background:rgba(0,180,42,0.1);color:var(--success)}
+        .tag-gray{background:rgba(134,144,156,0.1);color:var(--gray-300)}
+        .empty-state{padding:3rem 1rem;text-align:center;color:var(--gray-300)}
+        .search-input{width:100%;padding:0.7rem 1rem;border:1px solid var(--gray-200);border-radius:6px;margin-bottom:1rem}
+        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden}
+        .modal.show{opacity:1;visibility:visible}
+        .modal-content{background:#fff;border-radius:12px;width:90%;max-width:500px;padding:1.5rem}
+        @media(max-width:992px){.container{grid-template-columns:1fr}}
+    </style>
+    <script src="https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="header">
+    <div class="header-container">
+        <h1 class="header-title">律师案件管理系统</h1>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">案件信息录入</h2>
+        </div>
+        <div class="upload-box">
+            <p>上传图片仅作示意，本版无需OCR接口</p>
+            <p style="font-size:12px;color:#999">直接填写信息即可</p>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">案号</label>
+            <input type="text" class="form-control" id="case-number">
+        </div>
+        <div class="form-group">
+            <label class="form-label">承办法官</label>
+            <input type="text" class="form-control" id="judge-name">
+        </div>
+        <div class="form-group">
+            <label class="form-label">开庭日期</label>
+            <input type="date" class="form-control" id="hearing-date">
+        </div>
+        <div class="form-group">
+            <label class="form-label">联系方式</label>
+            <input type="text" class="form-control" id="contact-info">
+        </div>
+        <div class="form-group">
+            <label class="form-label">案件名称</label>
+            <input type="text" class="form-control" id="case-name">
+        </div>
+        <div class="form-group">
+            <label class="form-label">委托人</label>
+            <input type="text" class="form-control" id="client">
+        </div>
+        <div class="form-group">
+            <label class="form-label">案由</label>
+            <input type="text" class="form-control" id="case-reason">
+        </div>
+        <div class="form-group">
+            <label class="form-label">受理法院</label>
+            <input type="text" class="form-control" id="court">
+        </div>
+        <div class="form-group">
+            <label class="form-label">未办事项</label>
+            <input type="text" class="form-control" id="todo">
+        </div>
+
+        <button class="btn btn-success" onclick="saveCase()" style="width:100%">保存案件信息</button>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">案件列表</h2>
+            <button class="btn btn-export" onclick="exportToExcel()">导出Excel</button>
+        </div>
+        <input type="text" class="search-input" placeholder="搜索案号/名称/委托人" oninput="searchCase()">
+        <div style="overflow-x:auto">
+            <table class="case-table">
+                <thead>
+                    <tr>
+                        <th>序号</th><th>案件名称</th><th>委托人</th><th>案号</th><th>法官</th><th>开庭日期</th><th>状态</th><th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="case-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="remind-modal">
+    <div class="modal-content">
+        <h3 style="margin-bottom:1rem;color:var(--danger)">开庭提醒</h3>
+        <div id="remind-content"></div>
+        <div style="text-align:right;margin-top:1rem">
+            <button class="btn btn-primary" onclick="closeModal()">我知道了</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let cases = JSON.parse(localStorage.getItem('lawyerCases') || '[]');
+
+function renderList(){
+    const body = document.getElementById('case-table-body');
+    body.innerHTML = '';
+    if(cases.length===0){
+        body.innerHTML = `<tr><td colspan="8" class="empty-state">暂无案件</td></tr>`;
+        return;
+    }
+    cases.forEach((c,i)=>{
+        const d = new Date(c.hearingDate);
+        const today = new Date();
+        const diff = Math.ceil((d-today)/(1000*60*60*24));
+        let tag = '';
+        if(diff<=3&&diff>=0)tag=`<span class="tag tag-danger">即将开庭</span>`;
+        else if(diff<0)tag=`<span class="tag tag-gray">已开庭</span>`;
+        else if(diff<=7)tag=`<span class="tag tag-warning">一周内</span>`;
+        else tag=`<span class="tag tag-success">正常</span>`;
+
+        body.innerHTML+=`
+        <tr>
+            <td>${i+1}</td>
+            <td>${c.caseName||'-'}</td>
+            <td>${c.client||'-'}</td>
+            <td>${c.caseNumber||'-'}</td>
+            <td>${c.judgeName||'-'}</td>
+            <td>${c.hearingDate||'-'}</td>
+            <td>${tag}</td>
+            <td><button class="btn-delete" onclick="del(${c.id})">删除</button></td>
+        </tr>`;
+    });
+}
+
+function saveCase(){
+    const data = {
+        id:Date.now(),
+        caseName:document.getElementById('case-name').value,
+        client:document.getElementById('client').value,
+        caseNumber:document.getElementById('case-number').value,
+        caseReason:document.getElementById('case-reason').value,
+        court:document.getElementById('court').value,
+        judgeName:document.getElementById('judge-name').value,
+        contactInfo:document.getElementById('contact-info').value,
+        todo:document.getElementById('todo').value,
+        hearingDate:document.getElementById('hearing-date').value
+    };
+    if(!data.caseNumber||!data.hearingDate){alert('案号与开庭日期必填');return}
+    cases.push(data);
+    localStorage.setItem('lawyerCases',JSON.stringify(cases));
+    renderList();
+    document.querySelectorAll('.form-control').forEach(i=>i.value='');
+    alert('保存成功');
+}
+
+function del(id){
+    if(!confirm('确定删除？'))return;
+    cases = cases.filter(c=>c.id!==id);
+    localStorage.setItem('lawyerCases',JSON.stringify(cases));
+    renderList();
+}
+
+function searchCase(){
+    const kw = document.querySelector('.search-input').value.toLowerCase();
+    const f = cases.filter(c=>
+        (c.caseNumber||'').toLowerCase().includes(kw)||
+        (c.caseName||'').toLowerCase().includes(kw)||
+        (c.client||'').toLowerCase().includes(kw)
+    );
+    const body = document.getElementById('case-table-body');
+    body.innerHTML = '';
+    f.forEach((c,i)=>{
+        const diff = Math.ceil((new Date(c.hearingDate)-new Date())/(1000*60*60*24));
+        let tag = diff<=3&&diff>=0?'<span class="tag tag-danger">即将开庭</span>':diff<0?'<span class="tag tag-gray">已开庭</span>':'<span class="tag tag-success">正常</span>';
+        body.innerHTML+=`
+        <tr>
+            <td>${i+1}</td>
+            <td>${c.caseName||'-'}</td>
+            <td>${c.client||'-'}</td>
+            <td>${c.caseNumber||'-'}</td>
+            <td>${c.judgeName||'-'}</td>
+            <td>${c.hearingDate||'-'}</td>
+            <td>${tag}</td>
+            <td><button class="btn-delete" onclick="del(${c.id})">删除</button></td>
+        </tr>`;
+    });
+}
+
+function exportToExcel(){
+    if(cases.length===0){alert('无数据可导出');return}
+    const data = cases.map((c,i)=>({
+        序号:i+1,
+        案件名称:c.caseName||'',
+        委托人:c.client||'',
+        案号:c.caseNumber||'',
+        案由:c.caseReason||'',
+        受理法院:c.court||'',
+        承办法官:c.judgeName||'',
+        联系电话:c.contactInfo||'',
+        未办事项:c.todo||'',
+        开庭日期:c.hearingDate||''
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb,ws,'案件列表');
+    XLSX.writeFile(wb,`律师案件列表_${new Date().toLocaleDateString().replace(/\//g,'-')}.xlsx`);
+}
+
+function closeModal(){
+    document.getElementById('remind-modal').classList.remove('show');
+}
+
+window.onload = function(){
+    renderList();
+    const r = cases.filter(c=>{
+        const d = new Date(c.hearingDate);
+        const diff = Math.ceil((d-new Date())/(1000*60*60*24));
+        return diff<=3&&diff>=0;
+    });
+    if(r.length>0){
+        let html = '';
+        r.forEach((c,i)=>{html+=`<p>${i+1}、${c.caseNumber} ${c.caseName}</p>`});
+        document.getElementById('remind-content').innerHTML = html;
+        document.getElementById('remind-modal').classList.add('show');
+    }
+}
+</script>
+</body>
+</html>
